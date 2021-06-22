@@ -7,7 +7,7 @@ import (
 	"regexp"
 )
 
-func Filter(i interface{}) error{
+func Filter(i interface{}) (err error){
 	v := reflect.ValueOf(i)
 	if v.Kind() != reflect.Ptr {
 		return fmt.Errorf("non-pointer %v",v.Type())
@@ -20,14 +20,13 @@ func Filter(i interface{}) error{
 	for i:=0;i<v.NumField();i++ {
 		f:=v.Field(i)
 		if f.Kind() == reflect.Ptr && f.Elem().Kind()== reflect.String{
-			result := Filter(*f.Interface().(*string))
-			f.Set(reflect.ValueOf(&result))
+			err = Filter(f.Interface())
 		}else if f.Kind() == reflect.String{
-			result := Filter(f.Interface().(string))
-			f.Set(reflect.ValueOf(result))
+			f.SetString(deleteCyrillic(f.String()))
 		}
 	}
-	return nil
+	// Надо попробовать чере switch и сase "string","*string"
+	return
 }
 
 func deleteCyrillic(s string) string{
